@@ -1,0 +1,1 @@
+print('You will lose' if any([(not (val[0][i] == val[1][i] or val[0][i] == '@' and val[1][i] in 'atcoder' or val[1][i] == '@' and val[0][i] in 'atcoder') for i in range(len(val[0]))) for val in [[input(), input()]]][0]) else 'You can win')
