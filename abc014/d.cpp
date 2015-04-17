@@ -1,18 +1,50 @@
 #include<iostream>
-#include<queue>
 #include<vector>
 #include<cmath>
+#define INF 1000000000
+#define NN (2 << 20)
 using namespace std;
 
-vector<int> edges[100000];
-int N;
-int nodes[100000][2];
-bool done[100000];
+vector<int> edges[100000], eu;
+int N, Q, e1[100000];
+
+int d[NN * 2];
+void update(int i, int v)
+{
+  i += NN - 1;
+  d[i] = v;
+  while(i = (i - 1) / 2)
+    d[i] = min(d[i * 2 + 1], d[i * 2 + 2]);
+}
+
+int query(int a, int b, int i, int l, int r)
+{
+  if(r <= a || b <= l)
+    return INF;
+  if(a <= l && r <= b)
+    return d[i];
+  
+  int m = (l + r) / 2;
+  return min(query(a, b, i * 2 + 1, l, m), query(a, b, i * 2 + 2, m, r));
+}
+
+void dfs(int n, int d, int from)
+{
+  e1[n] = eu.size();
+  for(auto to: edges[n])
+  {
+    if(to == from)
+      continue;
+    eu.push_back(d);
+    dfs(to, d + 1, n);
+  }
+  eu.push_back(d);
+}
 
 int main()
 {
   cin >> N;
-  for(int i = 0; i < N; i++)
+  for(int i = 0; i < N - 1; i++)
   {
     int a, b;
     cin >> a >> b;
@@ -20,60 +52,20 @@ int main()
     edges[a].push_back(b);
     edges[b].push_back(a);
   }
-
-  queue<int> q;
-  q.push(-1);
-  q.push(0);
-  q.push(0);
-  while(!q.empty())
-  {
-    auto p = q.front(); q.pop();
-    auto tt = q.front(); q.pop();
-    auto f = q.front(); q.pop();
-    if(done[tt])
-      continue;
-    done[tt] = true;
-    nodes[tt][0] = p; 
-    nodes[tt][1] = f;
-    for(const auto& v : edges[tt])
-    {
-      if(v == p || done[v])
-        continue;
-      q.push(tt);
-      q.push(v);
-      q.push(f + 1);
-    }
-  }
-  for(int i = 0; i < N; i++)
-    cout << nodes[i][0] << " ";
-  cout << endl;
-  for(int i = 0; i < N; i++)
-    cout << nodes[i][1] << " ";
-  cout << endl;
-  int Q;
+  dfs(0, 0, -1);
+  for(int i = 0; i < NN * 2; i++)
+    d[i] = INF;
+  for(int i = 0; i < eu.size(); i++)
+    update(i, eu[i]);
   cin >> Q;
-  int t[2];
   for(int i = 0; i < Q; i++)
   {
-    int t[2];
-    cin >> t[0] >> t[1];
-    int xx = nodes[t[0]][1] > nodes[t[1]][1] ? 1 : 0;
-    for(int i = 0; i < abs(nodes[t[0]][1] - nodes[t[1]][1]); i++)
-    {
-      cout << t[0] << " " << t[1] << endl;
-      cout << nodes[t[0]][1] << " " << nodes[t[1]][1] << endl;
-      t[xx] = nodes[t[xx]][0];
-    }
-    cout << t[0] << " " << t[1] << endl;
-    while(true)
-    {
-      if(t[0] == t[1])
-      {
-        cout << nodes[t[0]][1] * 2 << endl;
-        break;
-      }
-    }
-    t[0] = nodes[t[0]][0];
-    t[1] = nodes[t[0]][1];
+    int a, b;
+    cin >> a >> b;
+    a--; b--;
+    int aa = e1[a], bb = e1[b];
+    if(aa > bb)
+      swap(aa, bb);
+    cout << eu[aa] + eu[bb] - query(aa, bb + 1, 0, 0, NN) * 2 + 1 << endl;
   }
 }
